@@ -1,29 +1,14 @@
-#load pdf 
-#split into chunks 
-#create the embeddings 
-#store into chroma 
-from langchain_community.document_loaders import PyPDFLoader
-from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_community.vectorstores import Chroma 
-from dotenv import load_dotenv
-from embeddings import get_embeddings
+from rag_pipeline import ingest_pdf
 
-load_dotenv()
 
-data = PyPDFLoader("document loaders/deeplearning.pdf")
-docs = data.load()
+def main() -> None:
+    result = ingest_pdf(
+        pdf_path="document loaders/deeplearning.pdf",
+        document_name="deeplearning.pdf",
+        replace_existing=True,
+    )
+    print(f"Indexed {result.document_name}: {result.page_count} pages, {result.chunk_count} chunks")
 
-splitter = RecursiveCharacterTextSplitter(
-    chunk_size = 1000,
-    chunk_overlap = 200
-)
 
-chunks = splitter.split_documents(docs)
-
-embedding_model = get_embeddings()
-
-vectorstore = Chroma.from_documents(
-    documents= chunks,
-    embedding=embedding_model,
-    persist_directory="chroma_db"
-)
+if __name__ == "__main__":
+    main()

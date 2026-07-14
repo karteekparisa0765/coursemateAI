@@ -1,75 +1,24 @@
-from dotenv import load_dotenv
-from langchain_community.vectorstores import Chroma
-from langchain_mistralai import ChatMistralAI
-from langchain_core.prompts import ChatPromptTemplate
-from embeddings import get_embeddings
+from rag_pipeline import answer_question, build_retriever, require_mistral_api_key
 
-load_dotenv()
 
-embedding_model = get_embeddings()
+def main() -> None:
+    require_mistral_api_key()
+    build_retriever()
 
-vectorstore = Chroma(
-    persist_directory= "chroma_db",
-    embedding_function=embedding_model
-)
+    print("CourseMate CLI is ready.")
+    print("Type `0` to exit.")
 
-retriever = vectorstore.as_retriever(
-    search_type = "mmr",
-    search_kwargs = {
-        "k" : 4,
-        "fetch_k":10,
-        "lambda_mult" :0.5
-    }
-)
+    while True:
+        query = input("You: ").strip()
+        if query == "0":
+            break
+        if not query:
+            print("AI: Please enter a question.")
+            continue
 
-llm = ChatMistralAI(model = "mistral-small-2506")
+        answer, _ = answer_question(query)
+        print(f"\nAI: {answer}\n")
 
-#prompt template 
-prompt = ChatPromptTemplate.from_messages(
-    [
-        (
-            "system",
-            """You are a helpful AI assistant.
 
-Use ONLY the provided context to answer the question.
-
-If the answer is not present in the context,
-say: "I could not find the answer in the document."
-"""
-        ),
-        (
-            "human",
-            """Context:
-{context}
-
-Question:
-{question}
-"""
-        )
-    ]
-)
-
-print("Rag system created ")
-
-print("press 0 to exit ")
-
-while True:
-    query = input("You : ")
-    if query == "0":
-        break 
-    
-    docs = retriever.invoke(query)
-
-    context = "\n\n".join(
-        [doc.page_content for doc in docs]
-    )
-    
-    final_prompt = prompt.invoke({
-        "context" :context,
-        "question": query
-    })
-    
-    response = llm.invoke(final_prompt)
-
-    print(f"\n AI: {response.content}")
-    
+if __name__ == "__main__":
+    main()

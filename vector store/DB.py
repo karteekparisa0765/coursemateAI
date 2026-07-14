@@ -1,34 +1,22 @@
-from langchain_community.vectorstores import Chroma
-from dotenv import load_dotenv
-from embeddings import get_embeddings
+from rag_pipeline import build_retriever, ingest_pdf
 
-load_dotenv()
 
-from langchain_core.documents import Document
+def smoke_test() -> None:
+    result = ingest_pdf(
+        pdf_path="document loaders/deeplearning.pdf",
+        document_name="deeplearning.pdf",
+        replace_existing=True,
+    )
+    print(f"Indexed {result.document_name}: {result.page_count} pages, {result.chunk_count} chunks")
 
-docs = [
-    Document(page_content="Python is widely used in Artificial Intelligence.", metadata={"source": "AI_book"}),
-    Document(page_content="Pandas is used for data analysis in Python.", metadata={"source": "DataScience_book"}),
-    Document(page_content="Neural networks are used in deep learning.", metadata={"source": "DL_book"}),
-]
+    retriever = build_retriever()
+    docs = retriever.invoke("What is deep learning?")
 
-embedding_model = get_embeddings()
+    for doc in docs:
+        print(doc.metadata)
+        print(doc.page_content[:300])
+        print()
 
-vectorstore = Chroma.from_documents(
-    documents = docs,
-    embedding= embedding_model,
-    persist_directory= "chroma-db"
-)
 
-result = vectorstore.similarity_search("what is used for data analysis?",k=2)
-
-for r in result:
-    print(r.page_content)
-    print(r.metadata)
-
-retriver = vectorstore.as_retriever()
-
-docs = retriver.invoke("Explain deep learning")
-
-for d in docs:
-    print(d.page_content)
+if __name__ == "__main__":
+    smoke_test()
