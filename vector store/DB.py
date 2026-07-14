@@ -1,6 +1,6 @@
 from langchain_community.vectorstores import Chroma
-from langchain_openai import OpenAIEmbeddings
 from dotenv import load_dotenv
+from embeddings import get_embeddings
 
 load_dotenv()
 
@@ -12,7 +12,7 @@ docs = [
     Document(page_content="Neural networks are used in deep learning.", metadata={"source": "DL_book"}),
 ]
 
-embedding_model = OpenAIEmbeddings()
+embedding_model = get_embeddings()
 
 vectorstore = Chroma.from_documents(
     documents = docs,

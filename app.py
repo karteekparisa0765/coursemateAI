@@ -5,10 +5,10 @@ import os
 
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_openai import OpenAIEmbeddings
 from langchain_community.vectorstores import Chroma
 from langchain_mistralai import ChatMistralAI
 from langchain_core.prompts import ChatPromptTemplate
+from embeddings import get_embeddings
 
 
 load_dotenv()
@@ -43,7 +43,7 @@ if uploaded_file:
 
             chunks = splitter.split_documents(docs)
 
-            embeddings = OpenAIEmbeddings()
+            embeddings = get_embeddings()
 
             vectorstore = Chroma.from_documents(
                 documents=chunks,
@@ -59,7 +59,7 @@ if uploaded_file:
 
 if os.path.exists("chroma_db"):
 
-    embeddings = OpenAIEmbeddings()
+    embeddings = get_embeddings()
 
     vectorstore = Chroma(
         persist_directory="chroma_db",

@@ -1,12 +1,12 @@
 from dotenv import load_dotenv
-from langchain_openai import OpenAIEmbeddings
 from langchain_community.vectorstores import Chroma
 from langchain_mistralai import ChatMistralAI
 from langchain_core.prompts import ChatPromptTemplate
+from embeddings import get_embeddings
 
 load_dotenv()
 
-embedding_model = OpenAIEmbeddings()
+embedding_model = get_embeddings()
 
 vectorstore = Chroma(
     persist_directory= "chroma_db",
