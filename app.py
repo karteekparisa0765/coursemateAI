@@ -26,6 +26,15 @@ st.set_page_config(
 # sibling, so opening a <div> in one call and closing it in another does
 # NOT actually nest the widgets in between — it just breaks the box apart.
 # Using real containers avoids that, and also inherits correct theming.
+#
+# THEME NOTE: pair this file with .streamlit/config.toml (base="light",
+# primaryColor="#7c3aed"). Several native widgets — the primary button,
+# the post-upload file chip, chat avatars, and the chat input — pull
+# their base colors from the Streamlit theme config before this CSS ever
+# runs, so overriding them here alone left dark-theme remnants showing
+# through (dark file chip, red button, dark avatars). The config.toml
+# fixes the root cause; the rules below are the belt-and-suspenders
+# layer that also themes them explicitly.
 # --------------------------------------------------------------------------
 st.markdown(
     """
@@ -38,6 +47,7 @@ st.markdown(
         --ink-soft: #475569;
         --ink-faint: #94a3b8;
         --accent: #7c3aed;
+        --accent-2: #0ea5e9;
         --card-border: rgba(15, 23, 42, 0.08);
         --card-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
     }
@@ -187,6 +197,23 @@ st.markdown(
     div[data-testid="stFileUploaderDropzone"] * { color: var(--ink-soft) !important; }
     div[data-testid="stFileUploaderDropzoneInstructions"] svg { fill: var(--accent) !important; }
 
+    /* Post-upload file chip — this used to fall back to the dark theme's
+       default surface color, which read as an out-of-place navy pill */
+    div[data-testid="stFileUploaderFile"] {
+        background: #f8f7fd !important;
+        border: 1px solid var(--card-border) !important;
+        border-radius: 10px !important;
+        padding: 0.3rem 0.5rem !important;
+    }
+    div[data-testid="stFileUploaderFile"] *,
+    div[data-testid="stFileUploaderFileName"] *,
+    div[data-testid="stFileUploaderDeleteBtn"] * {
+        color: var(--ink) !important;
+    }
+    div[data-testid="stFileUploaderDeleteBtn"] button:hover {
+        background: rgba(124, 58, 237, 0.10) !important;
+    }
+
     div[data-testid="stChatInput"] {
         background: #ffffff !important;
         border: 1px solid var(--card-border) !important;
@@ -194,6 +221,17 @@ st.markdown(
     }
     div[data-testid="stChatInput"] textarea { color: var(--ink) !important; }
     div[data-testid="stChatInput"] textarea::placeholder { color: var(--ink-faint) !important; }
+    /* Belt-and-suspenders: the input's outer wrapper can retain a dark
+       surface color from the base theme even when the inner box above
+       is overridden, so pin it explicitly too. */
+    div[data-testid="stChatInputContainer"],
+    div[data-testid="stBottomBlockContainer"] {
+        background: transparent !important;
+    }
+    div[data-testid="stChatInput"]:focus-within {
+        border-color: rgba(124, 58, 237, 0.45) !important;
+        box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.10);
+    }
 
     div[data-testid="stChatMessage"] { background: transparent !important; }
     div[data-testid="stChatMessage"] div[data-testid="stMarkdownContainer"],
@@ -201,6 +239,14 @@ st.markdown(
     div[data-testid="stChatMessage"] li,
     div[data-testid="stChatMessage"] span {
         color: var(--ink) !important;
+    }
+    /* Chat avatars defaulted to flat dark squares; give them a soft
+       gradient tint that echoes the hero instead */
+    div[data-testid="stChatMessageAvatarUser"],
+    div[data-testid="stChatMessageAvatarAssistant"],
+    div[data-testid="stChatMessageAvatarCustom"] {
+        background: linear-gradient(135deg, rgba(124, 58, 237, 0.16), rgba(14, 165, 233, 0.16)) !important;
+        border: 1px solid var(--card-border) !important;
     }
 
     details {
@@ -225,14 +271,20 @@ st.markdown(
         color: var(--ink) !important;
     }
 
-    div[data-testid="stFileUploaderFile"] *,
-    div[data-testid="stFileUploaderFileName"] *,
-    div[data-testid="stFileUploaderDeleteBtn"] * {
-        color: var(--ink) !important;
-    }
-
     button[kind="primary"] {
+        background: linear-gradient(135deg, var(--accent), var(--accent-2)) !important;
+        border: none !important;
         color: #ffffff !important;
+        box-shadow: 0 10px 24px rgba(124, 58, 237, 0.22);
+        transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+    }
+    button[kind="primary"]:hover {
+        filter: brightness(1.06);
+        transform: translateY(-1px);
+        box-shadow: 0 14px 28px rgba(124, 58, 237, 0.28);
+    }
+    button[kind="primary"]:active {
+        transform: translateY(0);
     }
 
     section[data-testid="stSidebar"] {
@@ -250,6 +302,10 @@ st.markdown(
     .stButton > button {
         border-radius: 12px !important;
         font-weight: 600 !important;
+        transition: transform 0.15s ease;
+    }
+    .stButton > button:hover {
+        transform: translateY(-1px);
     }
 
     hr { border-color: var(--card-border) !important; }
